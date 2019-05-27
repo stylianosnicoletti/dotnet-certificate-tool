@@ -3,6 +3,7 @@
 Command line tool to install and remove pfx certificates from the current user's store.
 
 Mainly used to workaround the limitation of certificates installed in the current user's store in Unix hosts.
+
 See [following github issue for more information](https://github.com/dotnet/corefx/issues/32875).
 
 ## Usage
