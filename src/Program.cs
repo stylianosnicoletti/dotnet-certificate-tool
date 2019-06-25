@@ -15,8 +15,6 @@ namespace ShareGate.CertificateTool
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine(string.Join(',', args));
-
             Parser.Default.ParseArguments<AddOptions, RemoveOptions>(args)
                 .WithParsed<AddOptions>(
                     opts => InstallCertificate(
