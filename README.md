@@ -14,6 +14,7 @@ Available arguments:
 - **--file (-f)**: path to the \*.pfx certificate file
 - **--password (-p)**: password for the \*.pfx certificate _(required)_
 - **--thumbprint (-t)**: certificate thumbprint _(required)_
+- **--store-name (-s)**: certificate store name (defaults to My). See possible values [here](https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.storename?view=netframework-4.8)
 
 ### With a base 64 string
 
@@ -23,9 +24,9 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet ShareGate.CertificateTool.dll add --base64 $base64 --password $password --thumbprint $thumbprint`
+`dotnet ShareGate.CertificateTool.dll add --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
-`dotnet ShareGate.CertificateTool.dll remove --base64 $base64 --password $password --thumbprint $thumbprint`
+`dotnet ShareGate.CertificateTool.dll remove --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
 ### With a pfx file
 
@@ -34,6 +35,6 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet ShareGate.CertificateTool.dll add -f ./cert.pfx --password $password --thumbprint $thumbprint`
+`dotnet ShareGate.CertificateTool.dll add -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
 
-`dotnet ShareGate.CertificateTool.dll remove -f ./cert.pfx --password $password --thumbprint $thumbprint`
+`dotnet ShareGate.CertificateTool.dll remove -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
