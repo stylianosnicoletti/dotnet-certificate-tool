@@ -6,6 +6,10 @@ Mainly used to workaround the limitation of certificates installed in the curren
 
 See [following github issue for more information](https://github.com/dotnet/corefx/issues/32875).
 
+## Installation
+
+`dotnet tool install --global dotnet-certificate-tool`
+
 ## Usage
 
 Available arguments:
@@ -24,9 +28,9 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet GSoft.CertificateTool.dll add --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
+`certificate-tool add --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
-`dotnet GSoft.CertificateTool.dll remove --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
+`certificate-tool remove --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
 ### With a pfx file
 
@@ -35,9 +39,9 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet GSoft.CertificateTool.dll add -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
+`certificate-tool add -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
 
-`dotnet GSoft.CertificateTool.dll remove -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
+`certificate-tool remove -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
 
 ## License
 

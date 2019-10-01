@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>1.2</Version>
+        <Version>1.2.1</Version>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <Description>CLI tool that installs a pfx certificate to the specified store (defaults to My).</Description>
+        <RepositoryUrl>https://github.com/gsoft-inc/dotnet-certificate-tool</RepositoryUrl>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -14,6 +15,8 @@
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageTags>dotnet;cli;tool;certificate;</PackageTags>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
