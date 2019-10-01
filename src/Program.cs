@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 using CommandLine;
 
-namespace ShareGate.CertificateTool
+namespace GSoft.CertificateTool
 {
     public static class Program
     {

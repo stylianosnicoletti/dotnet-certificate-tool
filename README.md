@@ -24,9 +24,9 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet ShareGate.CertificateTool.dll add --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
+`dotnet GSoft.CertificateTool.dll add --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
-`dotnet ShareGate.CertificateTool.dll remove --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
+`dotnet GSoft.CertificateTool.dll remove --base64 $base64 --password $password --thumbprint $thumbprint --store-name My`
 
 ### With a pfx file
 
@@ -35,9 +35,9 @@ Assuming you have the following environment variables setup:
 - \$password: pfx certificate password
 - \$thumbprint: certificate's thumbprint
 
-`dotnet ShareGate.CertificateTool.dll add -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
+`dotnet GSoft.CertificateTool.dll add -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
 
-`dotnet ShareGate.CertificateTool.dll remove -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
+`dotnet GSoft.CertificateTool.dll remove -f ./cert.pfx --password $password --thumbprint $thumbprint --store-name Root`
 
 ## License
 
