@@ -32,8 +32,6 @@ while [[ "$1" != "" ]]; do
     shift
 done
 
-echo ${cert_filepath}
-
+# Install certificate and run application
 ./certificate-tool add -f ${cert_filepath} -t ${cert_thumbprint} -p ${cert_password}
-
 dotnet ./ConsoleApp.dll

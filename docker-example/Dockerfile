@@ -16,5 +16,6 @@ RUN dotnet tool install --tool-path /app/out dotnet-certificate-tool
 FROM mcr.microsoft.com/dotnet/core/runtime:2.2
 WORKDIR /app
 COPY --from=build-env /app/out .
+COPY ./docker-entrypoint.sh .
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
