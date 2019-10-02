@@ -14,7 +14,7 @@ cert_thumbprint=""
 
 while [[ "$1" != "" ]]; do
     case $1 in
-        --cert_filepath )         shift
+        --cert_filepath )       shift
                                 cert_filepath=$1
                                 ;;
         --cert_password )       shift

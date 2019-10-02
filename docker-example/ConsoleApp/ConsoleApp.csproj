@@ -5,10 +5,4 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
 
-    <ItemGroup>
-      <None Update="entrypoint.sh">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>
