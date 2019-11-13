@@ -18,6 +18,9 @@ namespace GSoft.CertificateTool
                         opts.Thumbprint,
                         Enum.Parse<StoreName>(
                             opts.StoreName,
+                            ignoreCase: true),
+                        Enum.Parse<StoreLocation>(
+                            opts.StoreLocation,
                             ignoreCase: true)))
                 .WithParsed<RemoveOptions>(
                     opts => RemoveCertificate(
@@ -27,6 +30,9 @@ namespace GSoft.CertificateTool
                         opts.Thumbprint,
                         Enum.Parse<StoreName>(
                             opts.StoreName,
+                            ignoreCase: true),
+                        Enum.Parse<StoreLocation>(
+                            opts.StoreLocation,
                             ignoreCase: true)))
                 .WithNotParsed(
                     errs =>
@@ -34,9 +40,9 @@ namespace GSoft.CertificateTool
                             $"Error parsing\n {string.Join('\n', errs)}"));
         }
 
-        private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName)
+        private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
         {
-            Console.WriteLine($"Removing certificate from '{path}' from current user's '{storeName}' certificate store...");
+            Console.WriteLine($"Removing certificate from '{path}' from '{storeName}' certificate store (location: {storeLocation})...");
             
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
@@ -48,7 +54,7 @@ namespace GSoft.CertificateTool
             }
             else if (!string.IsNullOrEmpty(base64))
             {
-                Console.WriteLine($"Removing certificate from base 64 string from current user's '{storeName}' certificate store...");
+                Console.WriteLine($"Removing certificate from base 64 string from '{storeName}' certificate store (location: {storeLocation})...");
 
                 var bytes = Convert.FromBase64String(base64);
                 cert = new X509Certificate2(
@@ -62,7 +68,7 @@ namespace GSoft.CertificateTool
                 throw new ArgumentNullException("Unable to create certificate from provided arguments.");
             }
 
-            var store = new X509Store(storeName, StoreLocation.CurrentUser);
+            var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
             store.Remove(cert);
             
@@ -77,12 +83,12 @@ namespace GSoft.CertificateTool
             store.Close();
         }
 
-        private static void InstallCertificate(string path, string base64, string password, string thumbprint, StoreName storeName)
+        private static void InstallCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
             {
-                Console.WriteLine($"Installing certificate from '{path}' to current user's '{storeName}' certificate store...");
+                Console.WriteLine($"Installing certificate from '{path}' to '{storeName}' certificate store (location: {storeLocation})...");
                 
                 cert = new X509Certificate2(
                     path,
@@ -91,7 +97,7 @@ namespace GSoft.CertificateTool
             }
             else if (!string.IsNullOrEmpty(base64))
             {
-                Console.WriteLine($"Installing certificate from base 64 string to current user's '{storeName}' certificate store...");
+                Console.WriteLine($"Installing certificate from base 64 string to '{storeName}' certificate store (location: {storeLocation})...");
                 
                 var bytes = Convert.FromBase64String(base64);
                 cert = new X509Certificate2(
@@ -105,7 +111,7 @@ namespace GSoft.CertificateTool
                 throw new ArgumentNullException("Unable to create certificate from provided arguments.");
             }
 
-            var store = new X509Store(storeName, StoreLocation.CurrentUser);
+            var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
             store.Add(cert);
             
@@ -142,5 +148,7 @@ namespace GSoft.CertificateTool
 
         [Option(shortName: 's', longName: "store-name", Default = "My", HelpText = "Certificate store name (My, Root, etc.). See 'System.Security.Cryptography.X509Certificates.StoreName' for more information.")]
         public string StoreName { get; set; }
+        [Option(shortName: 'l', longName: "store-location", Default = "CurrentUser", HelpText = "Certificate store location (CurrentUser, LocalMachine, etc.). See 'System.Security.Cryptography.X509Certificates.StoreLocation' for more information.")]
+        public string StoreLocation { get; set; }
     }
 }
