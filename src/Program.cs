@@ -42,11 +42,10 @@ namespace GSoft.CertificateTool
 
         private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
         {
-            Console.WriteLine($"Removing certificate from '{path}' from '{storeName}' certificate store (location: {storeLocation})...");
-            
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
             {
+                Console.WriteLine($"Removing certificate from '{path}' from '{storeName}' certificate store (location: {storeLocation})...");
                 cert = new X509Certificate2(
                     path,
                     password,
@@ -55,7 +54,6 @@ namespace GSoft.CertificateTool
             else if (!string.IsNullOrEmpty(base64))
             {
                 Console.WriteLine($"Removing certificate from base 64 string from '{storeName}' certificate store (location: {storeLocation})...");
-
                 var bytes = Convert.FromBase64String(base64);
                 cert = new X509Certificate2(
                     bytes,
@@ -65,7 +63,7 @@ namespace GSoft.CertificateTool
 
             if (cert == null)
             {
-                throw new ArgumentNullException("Unable to create certificate from provided arguments.");
+                throw new ArgumentNullException("Unable to remove certificate from provided arguments.");
             }
 
             var store = new X509Store(storeName, storeLocation);
@@ -148,6 +146,7 @@ namespace GSoft.CertificateTool
 
         [Option(shortName: 's', longName: "store-name", Default = "My", HelpText = "Certificate store name (My, Root, etc.). See 'System.Security.Cryptography.X509Certificates.StoreName' for more information.")]
         public string StoreName { get; set; }
+        
         [Option(shortName: 'l', longName: "store-location", Default = "CurrentUser", HelpText = "Certificate store location (CurrentUser, LocalMachine, etc.). See 'System.Security.Cryptography.X509Certificates.StoreLocation' for more information.")]
         public string StoreLocation { get; set; }
     }
