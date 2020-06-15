@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>1.3.0</Version>
+        <Version>1.4.0</Version>
         <OutputType>Exe</OutputType>
         <Description>CLI tool that installs a pfx certificate to the specified store (defaults to My).</Description>
         <RepositoryUrl>https://github.com/gsoft-inc/dotnet-certificate-tool</RepositoryUrl>
-        <TargetFrameworks>netcoreapp2.2;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+        <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup>
