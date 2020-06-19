@@ -46,19 +46,23 @@ namespace GSoft.CertificateTool
             if (!string.IsNullOrEmpty(path))
             {
                 Console.WriteLine($"Removing certificate from '{path}' from '{storeName}' certificate store (location: {storeLocation})...");
-                cert = new X509Certificate2(
-                    path,
-                    password,
-                    X509KeyStorageFlags.DefaultKeySet);
+                cert = string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(path)
+                    : new X509Certificate2(
+                        path,
+                        password,
+                        X509KeyStorageFlags.DefaultKeySet);
             }
             else if (!string.IsNullOrEmpty(base64))
             {
                 Console.WriteLine($"Removing certificate from base 64 string from '{storeName}' certificate store (location: {storeLocation})...");
                 var bytes = Convert.FromBase64String(base64);
-                cert = new X509Certificate2(
-                    bytes,
-                    password,
-                    X509KeyStorageFlags.DefaultKeySet);
+                cert = string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(bytes)
+                    : new X509Certificate2(
+                        bytes,
+                        password,
+                        X509KeyStorageFlags.DefaultKeySet);
             }
 
             if (cert == null)
@@ -87,18 +91,22 @@ namespace GSoft.CertificateTool
             if (!string.IsNullOrEmpty(path))
             {
                 Console.WriteLine($"Installing certificate from '{path}' to '{storeName}' certificate store (location: {storeLocation})...");
-                
-                cert = new X509Certificate2(
-                    path,
-                    password,
-                    X509KeyStorageFlags.DefaultKeySet);
+
+                cert = string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(path)
+                    : new X509Certificate2(
+                        path,
+                        password,
+                        X509KeyStorageFlags.DefaultKeySet);
             }
             else if (!string.IsNullOrEmpty(base64))
             {
                 Console.WriteLine($"Installing certificate from base 64 string to '{storeName}' certificate store (location: {storeLocation})...");
                 
                 var bytes = Convert.FromBase64String(base64);
-                cert = new X509Certificate2(
+                cert = string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(bytes)
+                    : new X509Certificate2(
                     bytes,
                     password,
                     X509KeyStorageFlags.DefaultKeySet);
@@ -138,7 +146,7 @@ namespace GSoft.CertificateTool
         [Option(shortName: 'b', longName: "base64")]
         public string CertificateBase64 { get; set; }
 
-        [Option(shortName: 'p', longName: "password", Required = true)]
+        [Option(shortName: 'p', longName: "password")]
         public string Password { get; set; }
 
         [Option(shortName: 't', longName: "thumbprint", Required = true)]
