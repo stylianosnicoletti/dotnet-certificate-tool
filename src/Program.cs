@@ -21,6 +21,9 @@ namespace GSoft.CertificateTool
                             ignoreCase: true),
                         Enum.Parse<StoreLocation>(
                             opts.StoreLocation,
+                            ignoreCase: true),
+                        Enum.Parse<X509KeyStorageFlags>(
+                            opts.X509KeyStorageFlags,
                             ignoreCase: true)))
                 .WithParsed<RemoveOptions>(
                     opts => RemoveCertificate(
@@ -33,6 +36,9 @@ namespace GSoft.CertificateTool
                             ignoreCase: true),
                         Enum.Parse<StoreLocation>(
                             opts.StoreLocation,
+                            ignoreCase: true),
+                        Enum.Parse<X509KeyStorageFlags>(
+                            opts.X509KeyStorageFlags,
                             ignoreCase: true)))
                 .WithNotParsed(
                     errs =>
@@ -40,7 +46,7 @@ namespace GSoft.CertificateTool
                             $"Error parsing\n {string.Join('\n', errs)}"));
         }
 
-        private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation, X509KeyStorageFlags storageFlag)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
@@ -51,7 +57,7 @@ namespace GSoft.CertificateTool
                     : new X509Certificate2(
                         path,
                         password,
-                        X509KeyStorageFlags.DefaultKeySet);
+                        storageFlag);
             }
             else if (!string.IsNullOrEmpty(base64))
             {
@@ -62,7 +68,7 @@ namespace GSoft.CertificateTool
                     : new X509Certificate2(
                         bytes,
                         password,
-                        X509KeyStorageFlags.DefaultKeySet);
+                        storageFlag);
             }
 
             if (cert == null)
@@ -85,7 +91,7 @@ namespace GSoft.CertificateTool
             store.Close();
         }
 
-        private static void InstallCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void InstallCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation, X509KeyStorageFlags storageFlag)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
@@ -97,7 +103,7 @@ namespace GSoft.CertificateTool
                     : new X509Certificate2(
                         path,
                         password,
-                        X509KeyStorageFlags.DefaultKeySet);
+                        storageFlag);
             }
             else if (!string.IsNullOrEmpty(base64))
             {
@@ -109,7 +115,7 @@ namespace GSoft.CertificateTool
                     : new X509Certificate2(
                     bytes,
                     password,
-                    X509KeyStorageFlags.DefaultKeySet);
+                    storageFlag);
             }
             
             if (cert == null)
@@ -157,5 +163,8 @@ namespace GSoft.CertificateTool
         
         [Option(shortName: 'l', longName: "store-location", Default = "CurrentUser", HelpText = "Certificate store location (CurrentUser, LocalMachine, etc.). See 'System.Security.Cryptography.X509Certificates.StoreLocation' for more information.")]
         public string StoreLocation { get; set; }
+
+        [Option(shortName: 'g', longName: "key-storage-flag", Default = "DefaultKeySet", HelpText = "Defines where and how to import the private key of an X.509 certificate (DefaultKeySet, EphemeralKeySet, etc.). See 'System.Security.Cryptography.X509Certificates.X509KeyStorageFlags' for more information.")]
+        public string X509KeyStorageFlags { get; set; }
     }
 }
