@@ -1,32 +1,83 @@
 ﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-
+using System.Text;
 using CommandLine;
 
 namespace GSoft.CertificateTool
 {
     public static class Program
     {
+        private static X509KeyStorageFlags X509KeyStorageFlags
+        {
+            get
+            {
+                var keyStorageFlags = X509KeyStorageFlags.DefaultKeySet;
+
+                // https://stackoverflow.com/questions/50340712/avoiding-the-keychain-when-using-x509certificate2-on-os-x
+                if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                {
+                    keyStorageFlags = X509KeyStorageFlags.Exportable;
+                }
+
+                return keyStorageFlags;
+            }
+        }
+
         public static void Main(string[] args)
         {
             Parser.Default.ParseArguments<AddOptions, RemoveOptions>(args)
                 .WithParsed<AddOptions>(
-                    opts => InstallCertificate(
-                        opts.CertificatePath,
-                        opts.CertificateBase64,
-                        opts.Password,
-                        opts.Thumbprint,
-                        Enum.Parse<StoreName>(
-                            opts.StoreName,
-                            ignoreCase: true),
-                        Enum.Parse<StoreLocation>(
-                            opts.StoreLocation,
-                            ignoreCase: true)))
+                    opts =>
+                    {
+                        if (!string.IsNullOrEmpty(opts.PfxPath))
+                        {
+                            InstallPfxCertificate(
+                                opts.PfxPath,
+                                opts.Password,
+                                opts.Thumbprint,
+                                Enum.Parse<StoreName>(
+                                    opts.StoreName,
+                                    ignoreCase: true),
+                                Enum.Parse<StoreLocation>(
+                                    opts.StoreLocation,
+                                    ignoreCase: true));
+                        }
+                        else if (!string.IsNullOrEmpty(opts.Base64))
+                        {
+                            InstallBase64Certificate(
+                                opts.Base64,
+                                opts.Password,
+                                opts.Thumbprint,
+                                Enum.Parse<StoreName>(
+                                    opts.StoreName,
+                                    ignoreCase: true),
+                                Enum.Parse<StoreLocation>(
+                                    opts.StoreLocation,
+                                    ignoreCase: true));
+                        }
+                        else if (!string.IsNullOrEmpty(opts.PublicCertPath))
+                        {
+                            InstallPemCertificate(
+                                opts.PublicCertPath,
+                                opts.PrivateKeyPath,
+                                opts.Password,
+                                opts.Thumbprint,
+                                Enum.Parse<StoreName>(
+                                    opts.StoreName,
+                                    ignoreCase: true),
+                                Enum.Parse<StoreLocation>(
+                                    opts.StoreLocation,
+                                    ignoreCase: true));
+                        }
+                        else
+                        {
+                            throw new NotSupportedException("Arguments provided are invalid.");
+                        }
+                    })
                 .WithParsed<RemoveOptions>(
                     opts => RemoveCertificate(
-                        opts.CertificatePath,
-                        opts.CertificateBase64,
-                        opts.Password,
                         opts.Thumbprint,
                         Enum.Parse<StoreName>(
                             opts.StoreName,
@@ -40,52 +91,64 @@ namespace GSoft.CertificateTool
                             $"Error parsing\n {string.Join('\n', errs)}"));
         }
 
-        private static void RemoveCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void RemoveCertificate(string thumbprint, StoreName storeName, StoreLocation storeLocation)
         {
-            X509Certificate2 cert = null;
-            if (!string.IsNullOrEmpty(path))
-            {
-                Console.WriteLine($"Removing certificate from '{path}' from '{storeName}' certificate store (location: {storeLocation})...");
-                cert = string.IsNullOrEmpty(password)
-                    ? new X509Certificate2(path)
-                    : new X509Certificate2(
-                        path,
-                        password,
-                        X509KeyStorageFlags.DefaultKeySet);
-            }
-            else if (!string.IsNullOrEmpty(base64))
-            {
-                Console.WriteLine($"Removing certificate from base 64 string from '{storeName}' certificate store (location: {storeLocation})...");
-                var bytes = Convert.FromBase64String(base64);
-                cert = string.IsNullOrEmpty(password)
-                    ? new X509Certificate2(bytes)
-                    : new X509Certificate2(
-                        bytes,
-                        password,
-                        X509KeyStorageFlags.DefaultKeySet);
-            }
-
-            if (cert == null)
-            {
-                throw new ArgumentNullException("Unable to remove certificate from provided arguments.");
-            }
-
             var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
-            store.Remove(cert);
-            
+
+            Console.WriteLine($"Removing certificate '{thumbprint}' from store.");
+
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
             if (certificates.Count > 0)
             {
-                throw new ArgumentNullException("Unable to validate certificate was removed from store.");
+                throw new ArgumentNullException($"Unable to find certificate '{thumbprint}' from store.");
             }
 
+            store.RemoveRange(certificates);
             Console.WriteLine("Done.");
 
             store.Close();
         }
 
-        private static void InstallCertificate(string path, string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void InstallPemCertificate(string certificatePath, string privateKeyPath, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        {
+            if (!string.IsNullOrEmpty(certificatePath))
+            {
+                Console.WriteLine($"Installing certificate from '{certificatePath}' to '{storeName}' certificate store (location: {storeLocation})...");
+
+                using var publicKey =  string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(certificatePath)
+                    : new X509Certificate2(
+                        certificatePath,
+                        password,
+                        X509KeyStorageFlags);
+
+                var privateKeyText = File.ReadAllText(privateKeyPath);
+                var privateKeyBlocks = privateKeyText.Split("-", StringSplitOptions.RemoveEmptyEntries);
+                var privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+                using var rsa = RSA.Create();
+
+                switch (privateKeyBlocks[0])
+                {
+                    case "BEGIN PRIVATE KEY":
+                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+                        break;
+                    case "BEGIN ENCRYPTED PRIVATE KEY":
+                        rsa.ImportEncryptedPkcs8PrivateKey(Encoding.ASCII.GetBytes(password), privateKeyBytes, out _);
+                        break;
+                    case "BEGIN RSA PRIVATE KEY":
+                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+                        break;
+                }
+
+                var keyPair = publicKey.CopyWithPrivateKey(rsa);
+                var cert = new X509Certificate2(keyPair.Export(X509ContentType.Pfx, password), password, X509KeyStorageFlags);
+
+                AddToStore(cert, thumbprint, storeName, storeLocation);
+            }
+        }
+
+        private static void InstallPfxCertificate(string path, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
@@ -97,30 +160,47 @@ namespace GSoft.CertificateTool
                     : new X509Certificate2(
                         path,
                         password,
-                        X509KeyStorageFlags.DefaultKeySet);
+                        X509KeyStorageFlags);
             }
-            else if (!string.IsNullOrEmpty(base64))
-            {
-                Console.WriteLine($"Installing certificate from base 64 string to '{storeName}' certificate store (location: {storeLocation})...");
-                
-                var bytes = Convert.FromBase64String(base64);
-                cert = string.IsNullOrEmpty(password)
-                    ? new X509Certificate2(bytes)
-                    : new X509Certificate2(
-                    bytes,
-                    password,
-                    X509KeyStorageFlags.DefaultKeySet);
-            }
-            
+
             if (cert == null)
             {
                 throw new ArgumentNullException("Unable to create certificate from provided arguments.");
             }
 
+            AddToStore(cert, thumbprint, storeName, storeLocation);
+        }
+
+        private static void InstallBase64Certificate(string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        {
+            X509Certificate2 cert = null;
+            if (!string.IsNullOrEmpty(base64))
+            {
+                Console.WriteLine($"Installing certificate from base 64 string to '{storeName}' certificate store (location: {storeLocation})...");
+
+                var bytes = Convert.FromBase64String(base64);
+                cert = string.IsNullOrEmpty(password)
+                    ? new X509Certificate2(bytes)
+                    : new X509Certificate2(
+                        bytes,
+                        password,
+                        X509KeyStorageFlags);
+            }
+
+            if (cert == null)
+            {
+                throw new ArgumentNullException("Unable to create certificate from provided arguments.");
+            }
+
+            AddToStore(cert, thumbprint, storeName, storeLocation);
+        }
+
+        private static void AddToStore(X509Certificate2 cert, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        {
             var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
             store.Add(cert);
-            
+
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
             if (certificates.Count <= 0)
             {
@@ -132,19 +212,25 @@ namespace GSoft.CertificateTool
         }
     }
 
-    [Verb("add", HelpText = "Installs a pfx certificate to personal certificate of the current user.")]
+    [Verb("add", HelpText = "Installs a pfx certificate to current user's store.")]
     internal sealed class AddOptions : Options { }
-    
-    [Verb("remove", HelpText = "Removes a pfx certificate from the personal certificate of the current user.")]
+
+    [Verb("remove", HelpText = "Removes a pfx certificate from current user's store.")]
     internal sealed class RemoveOptions : Options { }
 
     internal abstract class Options
     {
         [Option(shortName: 'f', longName: "file")]
-        public string CertificatePath { get; set; }
+        public string PfxPath { get; set; }
+
+        [Option(shortName: 'c', longName: "cert")]
+        public string PublicCertPath { get; set; }
+
+        [Option(shortName: 'k', longName: "key")]
+        public string PrivateKeyPath { get; set; }
 
         [Option(shortName: 'b', longName: "base64")]
-        public string CertificateBase64 { get; set; }
+        public string Base64 { get; set; }
 
         [Option(shortName: 'p', longName: "password")]
         public string Password { get; set; }
