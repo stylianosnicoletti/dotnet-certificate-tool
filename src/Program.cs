@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -16,7 +17,7 @@ namespace GSoft.CertificateTool
                 var keyStorageFlags = X509KeyStorageFlags.DefaultKeySet;
 
                 // https://stackoverflow.com/questions/50340712/avoiding-the-keychain-when-using-x509certificate2-on-os-x
-                if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     keyStorageFlags = X509KeyStorageFlags.Exportable;
                 }
@@ -36,7 +37,6 @@ namespace GSoft.CertificateTool
                             InstallPfxCertificate(
                                 opts.PfxPath,
                                 opts.Password,
-                                opts.Thumbprint,
                                 Enum.Parse<StoreName>(
                                     opts.StoreName,
                                     ignoreCase: true),
@@ -49,7 +49,6 @@ namespace GSoft.CertificateTool
                             InstallBase64Certificate(
                                 opts.Base64,
                                 opts.Password,
-                                opts.Thumbprint,
                                 Enum.Parse<StoreName>(
                                     opts.StoreName,
                                     ignoreCase: true),
@@ -63,7 +62,6 @@ namespace GSoft.CertificateTool
                                 opts.PublicCertPath,
                                 opts.PrivateKeyPath,
                                 opts.Password,
-                                opts.Thumbprint,
                                 Enum.Parse<StoreName>(
                                     opts.StoreName,
                                     ignoreCase: true),
@@ -110,7 +108,7 @@ namespace GSoft.CertificateTool
             store.Close();
         }
 
-        private static void InstallPemCertificate(string certificatePath, string privateKeyPath, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void InstallPemCertificate(string certificatePath, string privateKeyPath, string password, StoreName storeName, StoreLocation storeLocation)
         {
             if (!string.IsNullOrEmpty(certificatePath))
             {
@@ -144,11 +142,11 @@ namespace GSoft.CertificateTool
                 var keyPair = publicKey.CopyWithPrivateKey(rsa);
                 var cert = new X509Certificate2(keyPair.Export(X509ContentType.Pfx, password), password, X509KeyStorageFlags);
 
-                AddToStore(cert, thumbprint, storeName, storeLocation);
+                AddToStore(cert, storeName, storeLocation);
             }
         }
 
-        private static void InstallPfxCertificate(string path, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void InstallPfxCertificate(string path, string password, StoreName storeName, StoreLocation storeLocation)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(path))
@@ -168,10 +166,10 @@ namespace GSoft.CertificateTool
                 throw new ArgumentNullException("Unable to create certificate from provided arguments.");
             }
 
-            AddToStore(cert, thumbprint, storeName, storeLocation);
+            AddToStore(cert, storeName, storeLocation);
         }
 
-        private static void InstallBase64Certificate(string base64, string password, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void InstallBase64Certificate(string base64, string password, StoreName storeName, StoreLocation storeLocation)
         {
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(base64))
@@ -192,14 +190,16 @@ namespace GSoft.CertificateTool
                 throw new ArgumentNullException("Unable to create certificate from provided arguments.");
             }
 
-            AddToStore(cert, thumbprint, storeName, storeLocation);
+            AddToStore(cert, storeName, storeLocation);
         }
 
-        private static void AddToStore(X509Certificate2 cert, string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        private static void AddToStore(X509Certificate2 cert, StoreName storeName, StoreLocation storeLocation)
         {
             var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
             store.Add(cert);
+
+            var thumbprint = cert.Thumbprint ?? string.Empty;
 
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
             if (certificates.Count <= 0)
@@ -213,12 +213,7 @@ namespace GSoft.CertificateTool
     }
 
     [Verb("add", HelpText = "Installs a pfx certificate to current user's store.")]
-    internal sealed class AddOptions : Options { }
-
-    [Verb("remove", HelpText = "Removes a pfx certificate from current user's store.")]
-    internal sealed class RemoveOptions : Options { }
-
-    internal abstract class Options
+    internal sealed class AddOptions : BaseOptions
     {
         [Option(shortName: 'f', longName: "file")]
         public string PfxPath { get; set; }
@@ -234,10 +229,17 @@ namespace GSoft.CertificateTool
 
         [Option(shortName: 'p', longName: "password")]
         public string Password { get; set; }
+    }
 
+    [Verb("remove", HelpText = "Removes a pfx certificate from current user's store.")]
+    internal sealed class RemoveOptions : BaseOptions
+    {
         [Option(shortName: 't', longName: "thumbprint", Required = true)]
         public string Thumbprint { get; set; }
+    }
 
+    internal abstract class BaseOptions
+    {
         [Option(shortName: 's', longName: "store-name", Default = "My", HelpText = "Certificate store name (My, Root, etc.). See 'System.Security.Cryptography.X509Certificates.StoreName' for more information.")]
         public string StoreName { get; set; }
         
