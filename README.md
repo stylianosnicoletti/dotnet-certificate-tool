@@ -1,8 +1,8 @@
-# dotnet-certificate-tool
+# Dotnet Certificate Tool
 
-Command line tool to install and remove certificates from the current user's store.
-
-Mainly used to workaround the limitation of certificates installed in the current user's store in Unix hosts.
+## Directions
+ Command line tool to install and remove certificates from the current user's store.
+ Mainly used to workaround the limitation of certificates installed in the current user's store in Unix hosts.
 
 See [following github issue for more information](https://github.com/dotnet/corefx/issues/32875).
 
@@ -58,4 +58,4 @@ Assuming you have the following variables setup:
 
 ## License
 
-Copyright © 2020, GSoft inc. This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license at https://github.com/gsoft-inc/gsoft-license/blob/master/LICENSE.
+Copyright © 2020, GSoft inc. This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license at [Github](https://github.com/gsoft-inc/gsoft-license/blob/master/LICENSE.)
