@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>2.0.1</Version>
+        <Version>2.0.2</Version>
         <OutputType>Exe</OutputType>
         <Description>CLI tool that installs a certificate to the specified store (defaults to My).</Description>
         <RepositoryUrl>https://github.com/gsoft-inc/dotnet-certificate-tool</RepositoryUrl>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
     <PropertyGroup>
