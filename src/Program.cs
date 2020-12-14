@@ -121,26 +121,30 @@ namespace GSoft.CertificateTool
                         password,
                         X509KeyStorageFlags);
 
-                var privateKeyText = File.ReadAllText(privateKeyPath);
-                var privateKeyBlocks = privateKeyText.Split("-", StringSplitOptions.RemoveEmptyEntries);
-                var privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-                using var rsa = RSA.Create();
-
-                switch (privateKeyBlocks[0])
+                X509Certificate2 keyPair = null;
+                if (!string.IsNullOrEmpty(privateKeyPath))
                 {
-                    case "BEGIN PRIVATE KEY":
-                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-                        break;
-                    case "BEGIN ENCRYPTED PRIVATE KEY":
-                        rsa.ImportEncryptedPkcs8PrivateKey(Encoding.ASCII.GetBytes(password), privateKeyBytes, out _);
-                        break;
-                    case "BEGIN RSA PRIVATE KEY":
-                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-                        break;
-                }
+                    var privateKeyText = File.ReadAllText(privateKeyPath);
+                    var privateKeyBlocks = privateKeyText.Split("-", StringSplitOptions.RemoveEmptyEntries);
+                    var privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+                    using var rsa = RSA.Create();
 
-                var keyPair = publicKey.CopyWithPrivateKey(rsa);
-                var cert = new X509Certificate2(keyPair.Export(X509ContentType.Pfx, password), password, X509KeyStorageFlags);
+                    switch (privateKeyBlocks[0])
+                    {
+                        case "BEGIN PRIVATE KEY":
+                            rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+                            break;
+                        case "BEGIN ENCRYPTED PRIVATE KEY":
+                            rsa.ImportEncryptedPkcs8PrivateKey(Encoding.ASCII.GetBytes(password), privateKeyBytes, out _);
+                            break;
+                        case "BEGIN RSA PRIVATE KEY":
+                            rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+                            break;
+                    }
+
+                    keyPair = publicKey.CopyWithPrivateKey(rsa);
+                }
+                var cert = keyPair == null ? publicKey : new X509Certificate2(keyPair.Export(X509ContentType.Pfx, password), password, X509KeyStorageFlags);
 
                 AddToStore(cert, storeName, storeLocation);
             }
