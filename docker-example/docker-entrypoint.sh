@@ -4,13 +4,11 @@ usage()
 {
     echo "Please enter the following arguments: \
     --cert_filepath: pfx certificate file path. \
-    --cert_password: pfx certificate password. \
-    --cert_thumbprint: certification thumbprint."
+    --cert_password: pfx certificate password."
 }
 
 cert_filepath=""
 cert_password=""
-cert_thumbprint=""
 
 while [[ "$1" != "" ]]; do
     case $1 in
@@ -19,9 +17,6 @@ while [[ "$1" != "" ]]; do
                                 ;;
         --cert_password )       shift
                                 cert_password=$1
-                                ;;
-        --cert_thumbprint )     shift
-                                cert_thumbprint=$1
                                 ;;
         -h | --help )           usage
                                 exit
@@ -33,5 +28,5 @@ while [[ "$1" != "" ]]; do
 done
 
 # Install certificate and run application
-./certificate-tool add -f ${cert_filepath} -t ${cert_thumbprint} -p ${cert_password}
+./certificate-tool add -f ${cert_filepath} -p ${cert_password}
 dotnet ./ConsoleApp.dll
