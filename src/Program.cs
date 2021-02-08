@@ -97,7 +97,7 @@ namespace GSoft.CertificateTool
             Console.WriteLine($"Removing certificate '{thumbprint}' from store.");
 
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-            if (certificates.Count > 0)
+            if (certificates.Count == 0)
             {
                 throw new ArgumentNullException($"Unable to find certificate '{thumbprint}' from store.");
             }
