@@ -51,4 +51,4 @@ jobs:
       - name: Create Release NuGet package
         run: dotnet pack -v normal -c Release --include-symbols --include-source -p:PackageVersion=${{ github.event.release.tag_name }} -o nupkg $PROJECT_NAME.csproj
       - name: Push to NuGet Feed
-        run: dotnet nuget push ./nupkg/*.nupkg --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY
+        run: dotnet nuget push nupkg/*${{ github.event.release.tag_name }}.nupkg --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY
