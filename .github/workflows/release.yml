@@ -1,8 +1,5 @@
 name: NuGet Release
 
-env:
-  PROJECT_NAME:  GSoft.CertificateTool
-
 on:
   release:
     types:
@@ -25,6 +22,6 @@ jobs:
       - name: Publish  
         uses: brandedoutcast/publish-nuget@v2.5.2  
         with:   
-          PROJECT_FILE_PATH: ./src/$PROJECT_NAME.csproj
+          PROJECT_FILE_PATH: ./src/GSoft.CertificateTool.csproj
           VERSION_STATIC: ${{ github.event.release.tag_name }}
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
