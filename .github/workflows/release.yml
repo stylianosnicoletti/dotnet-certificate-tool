@@ -1,12 +1,44 @@
-name: NuGet Release
-
+name: Build and publish on release
 on:
+  push:
+  pull_request:
   release:
     types:
       - published
+      
+defaults:
+  run:
+    shell: bash
+    working-directory: src
+
+env:
+  # Stop wasting time caching packages
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending usage data to Microsoft
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  PROJECT_NAME: GSoft.CertificateTool
+  NUGET_FEED: https://api.nuget.org/v3/index.json
+  NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.100
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build -c Release --no-restore
+      - name: Test
+        run: dotnet test -c Release
   deploy:
+    needs: build
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,10 +46,7 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 5.0.100
-      - name: Publish  
-        uses: brandedoutcast/publish-nuget@v2.5.2  
-        with:   
-          PROJECT_FILE_PATH: ./src/GSoft.CertificateTool.csproj
-          VERSION_STATIC: ${{ github.event.release.tag_name }}
-          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
-          TAG_COMMIT: false
+      - name: Create Release NuGet package
+        run: dotnet pack -v normal -c Release --include-symbols --include-source -p:PackageVersion=${{ github.event.release.tag_name }} -o nupkg $PROJECT_NAME.*proj
+      - name: Push to NuGet Feed
+        run: dotnet nuget push ./nupkg/*.nupkg --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY
