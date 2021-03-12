@@ -20,3 +20,4 @@ jobs:
           PROJECT_FILE_PATH: ./src/GSoft.CertificateTool.csproj
           VERSION_STATIC: ${{ github.event.release.tag_name }}
           NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+          TAG_COMMIT: false
