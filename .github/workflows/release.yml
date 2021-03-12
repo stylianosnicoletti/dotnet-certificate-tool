@@ -4,8 +4,6 @@ env:
   PROJECT_NAME:  GSoft.CertificateTool
 
 on:
-  push:
-  pull_request:
   release:
     types:
       - published
