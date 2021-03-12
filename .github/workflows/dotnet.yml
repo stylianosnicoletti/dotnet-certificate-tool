@@ -30,7 +30,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Pack
@@ -39,4 +39,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nupkg
-        path: ./src/${{ env.PROJECT_NAME }}/bin/Release/*.nupkg
+        path: ./src/bin/Release/*.nupkg
