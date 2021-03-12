@@ -40,7 +40,7 @@ jobs:
         run: echo ${{ github.event_name }}
   deploy:
     needs: build
-    if: github.event_name == 'published'
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
