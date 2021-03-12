@@ -2,15 +2,14 @@ name: .NET
 
 env:
   PROJECT_NAME:  GSoft.CertificateTool
-  NUGET_FEED: https://api.nuget.org/v3/index.json
-  NUGET_KEY: ${{ secrets.NUGET_KEY }}
 
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
-    
+  release:
+    types:
+      - published
+
 defaults:
   run:
     shell: bash
@@ -31,10 +30,19 @@ jobs:
       run: dotnet build --no-restore -c Release
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Pack
-      run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID $PROJECT_NAME.csproj
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: nupkg
-        path: ./src/nupkg/*.nupkg
+  deploy:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.100
+      - name: Publish  
+        uses: brandedoutcast/publish-nuget@v2.5.2  
+        with:   
+          PROJECT_FILE_PATH: src/$PROJECT_NAME.csproj
+          VERSION_STATIC: ${{ github.event.release.tag_name }}
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
