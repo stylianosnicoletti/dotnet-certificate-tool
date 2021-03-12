@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -28,7 +29,7 @@ namespace GSoft.CertificateTool
 
         public static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<AddOptions, RemoveOptions>(args)
+            Parser.Default.ParseArguments<AddOptions, RemoveOptions, ListOptions>(args)
                 .WithParsed<AddOptions>(
                     opts =>
                     {
@@ -83,10 +84,63 @@ namespace GSoft.CertificateTool
                         Enum.Parse<StoreLocation>(
                             opts.StoreLocation,
                             ignoreCase: true)))
+                .WithParsed<ListOptions>(
+                    opts => ListCertificates(
+                        Enum.Parse<StoreName>(
+                            opts.StoreName,
+                            ignoreCase: true),
+                        Enum.Parse<StoreLocation>(
+                            opts.StoreLocation,
+                            ignoreCase: true)))
                 .WithNotParsed(
                     errs =>
                         Console.WriteLine(
                             $"Error parsing\n {string.Join('\n', errs)}"));
+        }
+
+        private static void ListCertificates(StoreName storeName, StoreLocation storeLocation)
+        {
+            var store = new X509Store(storeName, storeLocation);
+            store.Open(OpenFlags.ReadOnly);
+
+            if (store.Certificates.Count > 0)
+            {
+                Console.WriteLine($"Certificates stored in '{storeName}' certificate store (location: {storeLocation}):");
+                Console.WriteLine();
+
+                var counter = 0;
+                foreach (var certificate in store.Certificates)
+                {
+                    counter++;
+                    Console.WriteLine($"#{counter}:");
+
+                    var certificateInfo = new Dictionary<string, string>
+                    {
+                        { "Subject", certificate.Subject },
+                        { "Issuer", certificate.Issuer },
+                        { "Serial Number", certificate.GetSerialNumberString() },
+                        { "Not Before", certificate.GetEffectiveDateString() },
+                        { "Not After", certificate.GetExpirationDateString() },
+                        { "Thumbprint", certificate.Thumbprint },
+                        { "Signature Algorithm", $"{certificate.SignatureAlgorithm.FriendlyName} ({certificate.SignatureAlgorithm.Value})" },
+                        { "PublicKey Algorithm", $"{certificate.PublicKey.Oid.FriendlyName} ({certificate.PublicKey.Oid.Value})" },
+                        { "Has PrivateKey", certificate.HasPrivateKey ? "Yes" : "No" }
+                    };
+
+                    foreach (var info in certificateInfo)
+                    {
+                        Console.WriteLine($"  {info.Key,-20}: {info.Value}");
+                    }
+
+                    Console.WriteLine();
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No certificates found in '{storeName}' certificate store (location: {storeLocation}).");
+            }
+
+            store.Close();
         }
 
         private static void RemoveCertificate(string thumbprint, StoreName storeName, StoreLocation storeLocation)
@@ -94,12 +148,12 @@ namespace GSoft.CertificateTool
             var store = new X509Store(storeName, storeLocation);
             store.Open(OpenFlags.ReadWrite);
 
-            Console.WriteLine($"Removing certificate '{thumbprint}' from store.");
+            Console.WriteLine($"Removing certificate '{thumbprint}' from '{storeName}' certificate store (location: {storeLocation})...");
 
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
             if (certificates.Count == 0)
             {
-                throw new ArgumentNullException($"Unable to find certificate '{thumbprint}' from store.");
+                throw new ArgumentNullException($"Unable to find certificate '{thumbprint}' in certificate store.");
             }
 
             store.RemoveRange(certificates);
@@ -216,7 +270,7 @@ namespace GSoft.CertificateTool
         }
     }
 
-    [Verb("add", HelpText = "Installs a pfx certificate to current user's store.")]
+    [Verb("add", HelpText = "Installs a pfx certificate to selected store.")]
     internal sealed class AddOptions : BaseOptions
     {
         [Option(shortName: 'f', longName: "file")]
@@ -235,18 +289,21 @@ namespace GSoft.CertificateTool
         public string Password { get; set; }
     }
 
-    [Verb("remove", HelpText = "Removes a pfx certificate from current user's store.")]
+    [Verb("remove", HelpText = "Removes a pfx certificate from selected store.")]
     internal sealed class RemoveOptions : BaseOptions
     {
         [Option(shortName: 't', longName: "thumbprint", Required = true)]
         public string Thumbprint { get; set; }
     }
 
+    [Verb("list", HelpText = "List all certificates in selected store.")]
+    internal sealed class ListOptions : BaseOptions { }
+
     internal abstract class BaseOptions
     {
         [Option(shortName: 's', longName: "store-name", Default = "My", HelpText = "Certificate store name (My, Root, etc.). See 'System.Security.Cryptography.X509Certificates.StoreName' for more information.")]
         public string StoreName { get; set; }
-        
+
         [Option(shortName: 'l', longName: "store-location", Default = "CurrentUser", HelpText = "Certificate store location (CurrentUser, LocalMachine, etc.). See 'System.Security.Cryptography.X509Certificates.StoreLocation' for more information.")]
         public string StoreLocation { get; set; }
     }
