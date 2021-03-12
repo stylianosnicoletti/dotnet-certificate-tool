@@ -37,4 +37,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nupkg
-        path: ./src/bin/Release/*.nupkg
+        path: ./src/nupkg/*.nupkg
