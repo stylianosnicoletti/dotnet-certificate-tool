@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>2.0.4</Version>
+        <Version>2.0.5</Version>
         <OutputType>Exe</OutputType>
         <Description>CLI tool that installs a certificate to the specified store (defaults to My).</Description>
         <RepositoryUrl>https://github.com/gsoft-inc/dotnet-certificate-tool</RepositoryUrl>
@@ -20,6 +20,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.3.0" />
+      <PackageReference Include="CommandLineParser" Version="2.8.0" />
     </ItemGroup>
 </Project>
