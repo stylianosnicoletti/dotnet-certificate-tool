@@ -26,10 +26,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup .NET Coreq
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.100
+          dotnet-version: 6.0.100
       - name: Restore
         run: dotnet restore
       - name: Build
@@ -45,7 +45,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.100
+          dotnet-version: 6.0.100
       - name: Build
         run: dotnet build -c Release
       - name: Create Release NuGet package
