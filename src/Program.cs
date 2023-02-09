@@ -36,7 +36,7 @@ namespace GSoft.CertificateTool
                         if (!string.IsNullOrEmpty(opts.PfxPath))
                         {
                             InstallPfxCertificate(
-                                opts.PfxPath,
+                                opts.PfxPath.Equals("-") ? Console.ReadLine() : opts.PfxPath,
                                 opts.Password,
                                 Enum.Parse<StoreName>(
                                     opts.StoreName,
@@ -48,7 +48,7 @@ namespace GSoft.CertificateTool
                         else if (!string.IsNullOrEmpty(opts.Base64))
                         {
                             InstallBase64Certificate(
-                                opts.Base64,
+                                opts.Base64.Equals("-") ? Console.ReadLine() : opts.Base64,
                                 opts.Password,
                                 Enum.Parse<StoreName>(
                                     opts.StoreName,
@@ -60,7 +60,7 @@ namespace GSoft.CertificateTool
                         else if (!string.IsNullOrEmpty(opts.PublicCertPath))
                         {
                             InstallPemCertificate(
-                                opts.PublicCertPath,
+                                opts.PublicCertPath.Equals("-") ? Console.ReadLine() : opts.PublicCertPath,
                                 opts.PrivateKeyPath,
                                 opts.Password,
                                 Enum.Parse<StoreName>(

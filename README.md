@@ -56,6 +56,26 @@ Assuming you have the following variables setup:
 
 `certificate-tool remove --thumbprint $thumbprint`
 
+### With PEM formatted files without a private key
+
+Assuming you have the following variables setup:
+
+- \$thumbprint: certificate's thumbprint
+
+`certificate-tool add --cert ./cert.crt`
+
+`certificate-tool remove --thumbprint $thumbprint`
+
+### Advanced
+
+You can use `-` to read the argument value from `stdin`. For instance,
+
+`cat ./cert.crt | certificate-tool add --cert -`
+
+`base64 -w0 ./cert.crt | certificate-tool add --base64 -`
+
+`ls ./*.crt | certificate-tool add --cert -`
+
 ## License
 
 Copyright © 2020, GSoft inc. This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license [here](https://github.com/gsoft-inc/gsoft-license/blob/master/LICENSE).
