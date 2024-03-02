@@ -19,6 +19,8 @@ env:
   PROJECT_NAME: GSoft.CertificateTool
   NUGET_FEED: https://api.nuget.org/v3/index.json
   NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+  GITHUB_PACKAGES_FEED: https://nuget.pkg.github.com/stylianosnicoletti/index.json
+  GITHUB_PACKAGES_KEY: ${{ secrets.NUGET_PACKAGE_TOKEN }}
 
 jobs:
   build:
@@ -50,5 +52,7 @@ jobs:
         run: dotnet build -c Release
       - name: Create Release NuGet package
         run: dotnet pack -v normal -c Release --include-symbols --include-source -p:PackageVersion=${{ github.event.release.tag_name }} -o nupkg $PROJECT_NAME.csproj
-      - name: Push to NuGet Feed
+      - name: Push to NuGet.Org
         run: dotnet nuget push nupkg/*${{ github.event.release.tag_name }}.nupkg --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY
+      - name: Push to GitHub Packages 
+        run: dotnet nuget push nupkg/*${{ github.event.release.tag_name }}.nupkg --source $GITHUB_PACKAGES_FEED --skip-duplicate --api-key $GITHUB_PACKAGES_KEY
