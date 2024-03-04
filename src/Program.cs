@@ -29,7 +29,7 @@ namespace GSoft.CertificateTool
 
         public static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<AddOptions, RemoveOptions, ListOptions>(args)
+            Parser.Default.ParseArguments<AddOptions, RemoveOptions, ListOptions, FindOptions>(args)
                 .WithParsed<AddOptions>(
                     opts =>
                     {
@@ -86,6 +86,15 @@ namespace GSoft.CertificateTool
                             ignoreCase: true)))
                 .WithParsed<ListOptions>(
                     opts => ListCertificates(
+                        Enum.Parse<StoreName>(
+                            opts.StoreName,
+                            ignoreCase: true),
+                        Enum.Parse<StoreLocation>(
+                            opts.StoreLocation,
+                            ignoreCase: true)))
+                .WithParsed<FindOptions>(
+                    opts => FindByThumbprint(
+                        opts.Thumbprint,
                         Enum.Parse<StoreName>(
                             opts.StoreName,
                             ignoreCase: true),
@@ -168,7 +177,7 @@ namespace GSoft.CertificateTool
             {
                 Console.WriteLine($"Installing certificate from '{certificatePath}' to '{storeName}' certificate store (location: {storeLocation})...");
 
-                using var publicKey =  string.IsNullOrEmpty(password)
+                using var publicKey = string.IsNullOrEmpty(password)
                     ? new X509Certificate2(certificatePath)
                     : new X509Certificate2(
                         certificatePath,
@@ -251,6 +260,68 @@ namespace GSoft.CertificateTool
             AddToStore(cert, storeName, storeLocation);
         }
 
+        private static void FindByThumbprint(string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        {
+            var store = new X509Store(storeName, storeLocation);
+            store.Open(OpenFlags.ReadOnly);
+
+            if (store.Certificates.Count == 0)
+            {
+                return;
+            }
+
+            Console.WriteLine(
+                $"Searching for certificate thumbprint '{thumbprint}' in '{storeName}/{storeLocation}'...");
+            Console.WriteLine();
+
+            bool isFound = false;
+            foreach (var certificate in store.Certificates)
+            {
+                if (certificate.Thumbprint == null ||
+                    string.Compare(certificate.Thumbprint, thumbprint,
+                        StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    continue;
+                }
+
+                isFound = true;
+                var certificateInfo = new Dictionary<string, string>
+                {
+                    {"Subject", certificate.Subject},
+                    {"Issuer", certificate.Issuer},
+                    {"Serial Number", certificate.GetSerialNumberString()},
+                    {"Not Before", certificate.GetEffectiveDateString()},
+                    {"Not After", certificate.GetExpirationDateString()},
+                    {"Thumbprint", certificate.Thumbprint},
+                    {
+                        "Signature Algorithm",
+                        $"{certificate.SignatureAlgorithm.FriendlyName} ({certificate.SignatureAlgorithm.Value})"
+                    },
+                    {
+                        "PublicKey Algorithm",
+                        $"{certificate.PublicKey.Oid.FriendlyName} ({certificate.PublicKey.Oid.Value})"
+                    },
+                    {"Has PrivateKey", certificate.HasPrivateKey ? "Yes" : "No"}
+                };
+
+                Console.WriteLine("Certificate found:\n");
+
+                foreach (var info in certificateInfo)
+                {
+                    Console.WriteLine($"  {info.Key,-20}: {info.Value}");
+                }
+
+                Console.WriteLine();
+            }
+
+            if (!isFound)
+            {
+                Console.WriteLine($"Certificate not found!");
+            }
+
+            store.Close();
+        }
+
         private static void AddToStore(X509Certificate2 cert, StoreName storeName, StoreLocation storeLocation)
         {
             var store = new X509Store(storeName, storeLocation);
@@ -291,6 +362,13 @@ namespace GSoft.CertificateTool
 
     [Verb("remove", HelpText = "Removes a pfx certificate from selected store.")]
     internal sealed class RemoveOptions : BaseOptions
+    {
+        [Option(shortName: 't', longName: "thumbprint", Required = true)]
+        public string Thumbprint { get; set; }
+    }
+
+    [Verb("find", HelpText = "Find certificate by thumbprint in selected store.")]
+    internal sealed class FindOptions : BaseOptions
     {
         [Option(shortName: 't', longName: "thumbprint", Required = true)]
         public string Thumbprint { get; set; }

@@ -56,6 +56,12 @@ Assuming you have the following variables setup:
 
 `certificate-tool remove --thumbprint $thumbprint`
 
+### Find certificate
+
+Assuming you want to find a certificate in store.
+
+`certificate-tool find --thumbprint $thumbprint --store-location $storeLocation --store-name $storeName`
+
 ## License
 
 Copyright © 2020, GSoft inc. This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license [here](https://github.com/gsoft-inc/gsoft-license/blob/master/LICENSE).
