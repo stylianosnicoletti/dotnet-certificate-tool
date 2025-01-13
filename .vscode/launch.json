@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/docker-example/ConsoleApp/bin/Debug/net8.0/ConsoleApp.dll",
+            "program": "${workspaceFolder}/docker-example/ConsoleApp/bin/Debug/net9.0/ConsoleApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/docker-example/ConsoleApp",
             "console": "internalConsole",
