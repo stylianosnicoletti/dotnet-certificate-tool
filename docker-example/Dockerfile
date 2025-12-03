@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0.101 as build-env
+FROM mcr.microsoft.com/dotnet/sdk:10.0 as build-env
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -13,7 +13,7 @@ RUN dotnet publish -c Release -o /app/out
 RUN dotnet tool install --tool-path /app/out dotnet-certificate-tool
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 COPY ./docker-entrypoint.sh .
