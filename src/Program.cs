@@ -168,37 +168,9 @@ namespace GSoft.CertificateTool
             {
                 Console.WriteLine($"Installing certificate from '{certificatePath}' to '{storeName}' certificate store (location: {storeLocation})...");
 
-                using var publicKey =  string.IsNullOrEmpty(password)
-                    ? new X509Certificate2(certificatePath)
-                    : new X509Certificate2(
-                        certificatePath,
-                        password,
-                        X509KeyStorageFlags);
-
-                X509Certificate2 keyPair = null;
-                if (!string.IsNullOrEmpty(privateKeyPath))
-                {
-                    var privateKeyText = File.ReadAllText(privateKeyPath);
-                    var privateKeyBlocks = privateKeyText.Split("-", StringSplitOptions.RemoveEmptyEntries);
-                    var privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-                    using var rsa = RSA.Create();
-
-                    switch (privateKeyBlocks[0])
-                    {
-                        case "BEGIN PRIVATE KEY":
-                            rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-                            break;
-                        case "BEGIN ENCRYPTED PRIVATE KEY":
-                            rsa.ImportEncryptedPkcs8PrivateKey(Encoding.ASCII.GetBytes(password), privateKeyBytes, out _);
-                            break;
-                        case "BEGIN RSA PRIVATE KEY":
-                            rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-                            break;
-                    }
-
-                    keyPair = publicKey.CopyWithPrivateKey(rsa);
-                }
-                var cert = keyPair == null ? publicKey : new X509Certificate2(keyPair.Export(X509ContentType.Pfx, password), password, X509KeyStorageFlags);
+                var cert = string.IsNullOrEmpty(password)
+                    ? X509Certificate2.CreateFromPemFile(certificatePath, privateKeyPath)
+                    : X509Certificate2.CreateFromEncryptedPemFile(certificatePath, password, privateKeyPath);
 
                 AddToStore(cert, storeName, storeLocation);
             }
